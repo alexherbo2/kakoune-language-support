@@ -36,7 +36,7 @@ define-command -override toggle-block-comments -docstring 'Toggle block comments
 }
 
 define-command -override -hidden toggle-line-comments-with-token -params 1 -docstring 'Toggle line comments with the given line comment token' %{
-  evaluate-commands -draft -save-regs 'a' %{
+  evaluate-commands -draft -save-regs 'ab' %{
     # Arguments
     set-register a %arg{1}
 
@@ -58,12 +58,8 @@ define-command -override -hidden toggle-line-comments-with-token -params 1 -docs
           # At least one line is not commented, so comment everything.
           #
           # Align selections to column to place comment tokens.
-          evaluate-commands %sh{
-            leftmost_anchor_column=$(echo "$kak_selections_desc" | tr ' ' '\n' | cut -d ',' -f 1 | cut -d '.' -f 2 | sort -n | head -n 1)
-            selections_description=$(echo "$kak_selections_desc" | sed -E "s/\\.[0-9]+,/.${leftmost_anchor_column},/g")
-            echo "select $selections_description"
-          }
-          execute-keys -draft 'i<c-r>a<space>'
+          set-register b %sh(echo "$kak_selections_desc" | tr ' ' '\n' | cut -d ',' -f 1 | cut -d '.' -f 2 | sort -n | head -n 1)
+          execute-keys -draft "gh%reg{b}lhi<c-r>a<space>"
         } catch %{
           # Uncomment lines
           # All lines are commented, so uncomment everything.
