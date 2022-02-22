@@ -2,7 +2,7 @@ source rc/comment.kak
 
 define-command write-append -params 1 %{
   evaluate-commands -draft %{
-    execute-keys '%'
+    execute-keys '%H'
     nop %sh(printf '%s\n' "$kak_selection" >> "$1")
   }
 }
