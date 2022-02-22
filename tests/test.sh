@@ -4,4 +4,4 @@ at_exit() {
 trap at_exit EXIT
 
 kak -n -e 'source tests/init.kak'
-diff -u tests/output.txt tests/comment/expected-output.txt
+diff -u tests/output.txt tests/expected-output.txt
