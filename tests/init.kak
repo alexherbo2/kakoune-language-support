@@ -11,10 +11,9 @@ define-command echo-to-file-append -params 2 %{
   nop %sh(printf '%s\n' "$2" >> "$1")
 }
 
+edit tests/assets/sample.cr
 set-option buffer line_comment_token '#'
 set-option buffer block_comment_tokens '=begin' '=end'
-
-edit tests/assets/sample.cr
 select 1.1,10.3
 toggle-comments
 echo-to-file-append tests/output.txt "%val{selections_desc}"
