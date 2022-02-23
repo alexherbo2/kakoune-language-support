@@ -3,5 +3,5 @@ at_exit() {
 }
 trap at_exit EXIT
 
-kak -n -e 'source tests/init.kak'
+kak -n -ui dummy -e 'source tests/init.kak'
 diff -u tests/output.txt tests/expected-output.txt
