@@ -58,6 +58,18 @@ test 'Toggle line comments' %{
     #  self == Color::Red
     #end]
   end
+
+  [def paint(color : Color)
+    case color
+    when .red?
+      # ...
+    else
+      # Unusual, but still can happen.
+      raise "Unknown color: #{color}"
+    end
+  end
+
+  paint "red"]
 ] %[
   enum Color
     # [Red]
@@ -68,6 +80,18 @@ test 'Toggle line comments' %{
       self == Color::Red
     end]
   end
+
+  # [def paint(color : Color)
+  #   case color
+  #   when .red?
+  #     # ...
+  #   else
+  #     # Unusual, but still can happen.
+  #     raise "Unknown color: #{color}"
+  #   end
+  # end
+
+  # paint "red"]
 ]
 
 test 'Toggle block comments' %{
@@ -84,6 +108,18 @@ test 'Toggle block comments' %{
       self == Color::Red
     end]
   end
+
+  /* [def paint(color : Color)
+    case color
+    when .red?
+      # ...
+    else
+      # Unusual, but still can happen.
+      raise "Unknown color: #{color}"
+    end
+  end
+
+  paint "red"] */
 ] %[
   enum Color
     [Red]
@@ -94,6 +130,18 @@ test 'Toggle block comments' %{
       self == Color::Red
     end] */
   end
+
+  [def paint(color : Color)
+    case color
+    when .red?
+      # ...
+    else
+      # Unusual, but still can happen.
+      raise "Unknown color: #{color}"
+    end
+  end
+
+  paint "red"]
 ]
 
 echo -debug "Result: %opt{example_count} examples, %opt{failure_count} failures, %opt{error_count} errors."
