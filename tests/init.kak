@@ -48,53 +48,53 @@ define-command test -params 4 %{
 test 'Toggle line comments' %{
   set-option buffer line_comment_token '#'
   toggle-comments
-} %{
-enum Color
-  [Red]
-  [Green]
-  [Blue]
+} %[
+  enum Color
+    [Red]
+    [Green]
+    [Blue]
 
-  #[def red?
-  #  self == Color::Red
-  #end]
-end
-} %{
-enum Color
-  # [Red]
-  # [Green]
-  # [Blue]
+    #[def red?
+    #  self == Color::Red
+    #end]
+  end
+] %[
+  enum Color
+    # [Red]
+    # [Green]
+    # [Blue]
 
-  [def red?
-    self == Color::Red
-  end]
-end
-}
+    [def red?
+      self == Color::Red
+    end]
+  end
+]
 
 test 'Toggle block comments' %{
   set-option buffer line_comment_token
   set-option buffer block_comment_tokens '/*' '*/'
   toggle-comments
-} %{
-enum Color
-  /* [Red] */
-  /* [Green] */
-  /* [Blue] */
+} %[
+  enum Color
+    /* [Red] */
+    /* [Green] */
+    /* [Blue] */
 
-  [def red?
-    self == Color::Red
-  end]
-end
-} %{
-enum Color
-  [Red]
-  [Green]
-  [Blue]
+    [def red?
+      self == Color::Red
+    end]
+  end
+] %[
+  enum Color
+    [Red]
+    [Green]
+    [Blue]
 
-  /* [def red?
-    self == Color::Red
-  end] */
-end
-}
+    /* [def red?
+      self == Color::Red
+    end] */
+  end
+]
 
 echo -debug "Result: %opt{example_count} examples, %opt{failure_count} failures, %opt{error_count} errors."
 buffer '*debug*'
