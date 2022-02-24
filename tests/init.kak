@@ -96,7 +96,7 @@ enum Color
 end
 }
 
-echo -debug "Result: %opt{example_count} examples, %opt{failure_count} failures."
+echo -debug "Result: %opt{example_count} examples, %opt{failure_count} failures, %opt{error_count} errors."
 buffer '*debug*'
 write! %opt{log_path}
 quit! %opt{exit_code}
