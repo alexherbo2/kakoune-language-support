@@ -8,30 +8,6 @@ delete-buffer '*debug*'
 
 # Syntax:
 #
-# init <commands>
-#
-define-command init -params 1 %{
-  set-register c %arg{1}
-}
-
-# Syntax:
-#
-# set-input <text>
-#
-define-command set-input -params 1 %{
-  set-register a %arg{1}
-}
-
-# Syntax:
-#
-# set-output <text>
-#
-define-command set-output -params 1 %{
-  set-register b %arg{1}
-}
-
-# Syntax:
-#
 # test <description> <commands>
 #
 # Example:
@@ -84,6 +60,30 @@ define-command test -params 2 %{
     set-option global exit_code 1
   }
   delete-buffer
+}
+
+# Syntax:
+#
+# init <commands>
+#
+define-command init -params 1 %{
+  set-register c %arg{1}
+}
+
+# Syntax:
+#
+# set-input <text>
+#
+define-command set-input -params 1 %{
+  set-register a %arg{1}
+}
+
+# Syntax:
+#
+# set-output <text>
+#
+define-command set-output -params 1 %{
+  set-register b %arg{1}
 }
 
 # Syntax:
