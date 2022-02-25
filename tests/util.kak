@@ -4,28 +4,57 @@ declare-option int error_count
 declare-option int exit_code
 declare-option str log_path %arg{1}
 
+delete-buffer '*debug*'
+
 # Syntax:
 #
-# tests <commands>
+# init <commands>
 #
-define-command tests -params 1 %{
-  delete-buffer '*debug*'
-  evaluate-commands %arg{1}
-  echo -debug "Result: %opt{example_count} examples, %opt{failure_count} failures, %opt{error_count} errors."
-  buffer '*debug*'
-  write! %opt{log_path}
-  quit! %opt{exit_code}
+define-command init -params 1 %{
+  set-register c %arg{1}
 }
 
 # Syntax:
 #
-# test <description> <commands> <input> <output>
+# set-input <text>
 #
-define-command test -params 4 %{
+define-command set-input -params 1 %{
+  set-register a %arg{1}
+}
+
+# Syntax:
+#
+# set-output <text>
+#
+define-command set-output -params 1 %{
+  set-register b %arg{1}
+}
+
+# Syntax:
+#
+# test <description> <commands>
+#
+# Example:
+#
+# test 'select words' %{
+#
+#   init %{
+#     execute-keys 's\w+<ret>'
+#   }
+#
+#   set-input %[
+#     [hello world]
+#   ]
+#
+#   set-output %[
+#     [hello] [world]
+#   ]
+# }
+#
+define-command test -params 2 %{
   edit -scratch
+  evaluate-commands %arg{2}
   # https://crystal-lang.org/reference/master/syntax_and_semantics/literals/string.html#heredoc
-  set-register a %arg{3}
-  set-register b %arg{4}
   execute-keys '%"aR%<s>\A\n|\n\z<ret>d%1<s>(\h*)\n\z<ret>y%<s>^\Q<c-r>"<ret>dged%"ay'
   execute-keys '%"bR%<s>\A\n|\n\z<ret>d%1<s>(\h*)\n\z<ret>y%<s>^\Q<c-r>"<ret>dged%"by'
   set-option -add global example_count 1
@@ -34,7 +63,7 @@ define-command test -params 4 %{
     # Set buffer content and selected text from marks: [selected_text].
     execute-keys '"aR<s>\[<ret><a-i>ri<backspace><esc>a<del><esc>'
     # Yields commands
-    evaluate-commands %arg{2}
+    evaluate-commands %reg{c}
     # Mark selected text: [selected_text].
     execute-keys 'i[<esc>a]<esc>%"ay'
 
@@ -55,4 +84,15 @@ define-command test -params 4 %{
     set-option global exit_code 1
   }
   delete-buffer
+}
+
+# Syntax:
+#
+# goodbye
+#
+define-command goodbye %{
+  echo -debug "Result: %opt{example_count} examples, %opt{failure_count} failures, %opt{error_count} errors."
+  buffer '*debug*'
+  write! %opt{log_path}
+  quit! %opt{exit_code}
 }
