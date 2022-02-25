@@ -70,11 +70,11 @@ define-command -override -hidden toggle-line-comments-with-token -params 1 -docs
 
             # Uncomment lines (keep space)
             # At least one comment token is not followed by a space, so uncomment and keep space everywhere.
-            execute-keys -draft '<s>\A\Q<c-r>a<ret><d>'
+            execute-keys -draft 's\A\Q<c-r>a<ret>d'
           } catch %{
             # Uncomment lines (remove space)
             # All comment tokens are followed by a space, so uncomment and remove space everywhere.
-            execute-keys -draft '<s>\A\Q<c-r>a<space><ret><d>'
+            execute-keys -draft 's\A\Q<c-r>a<space><ret>d'
           }
         }
       }
@@ -98,7 +98,7 @@ define-command -override -hidden toggle-block-comments-with-token -params 2 -doc
           # Uncomment selection.
           # Assert that the selection has been commented.
           execute-keys -draft '<a-k>\A\Q<c-r>a\E.*\Q<c-r>b\E\z<ret>'
-          execute-keys -draft '<s>\A\Q<c-r>a\E\h*|\h*\Q<c-r>b\E\z<ret><d>'
+          execute-keys -draft 's\A\Q<c-r>a\E\h*|\h*\Q<c-r>b\E\z<ret>d'
         } catch %{
           # Comment selection.
           execute-keys -draft 'i<c-r>a<space><esc>a<space><c-r>b'
