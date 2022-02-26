@@ -11,7 +11,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install Kakoune
-        run: sudo snap install crystal --classic
+        run: sudo snap install kakoune --classic
 
       - name: Run tests
         run: make test
