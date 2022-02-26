@@ -1,3 +1,4 @@
+source test/test_helper.kak
 source rc/comment.kak
 
 test 'Toggle line comments' %{

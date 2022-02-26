@@ -1,7 +1,7 @@
 build:
 
 test:
-	sh tests/test.sh
+	sh test/test.sh
 
 install:
 	install -d ~/.config/kak/autoload
@@ -9,3 +9,5 @@ install:
 
 uninstall:
 	rm -f ~/.config/kak/autoload/comment.kak ~/.config/kak/autoload/indent.kak
+
+.PHONY: test
