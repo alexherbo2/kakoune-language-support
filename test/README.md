@@ -18,3 +18,13 @@ test 'Select words' %{
   ]
 }
 ```
+
+Text enclosed in square brackets `[]` denotes selected text.
+
+## Running tests
+
+``` sh
+make test
+```
+
+Tests live in the `test` directory and must end with `_test.kak`.
