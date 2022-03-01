@@ -29,7 +29,7 @@ test 'Toggle line comments' %{
       end
     end
 
-    paint "red"]
+    paint :red]
   ]
 
   set-output %[
@@ -53,7 +53,7 @@ test 'Toggle line comments' %{
     #   end
     # end
 
-    # paint "red"]
+    # paint :red]
   ]
 }
 
@@ -86,7 +86,7 @@ test 'Toggle block comments' %{
       end
     end
 
-    paint "red"] */
+    paint :red] */
   ]
 
   set-output %[
@@ -110,6 +110,6 @@ test 'Toggle block comments' %{
       end
     end
 
-    paint "red"]
+    paint :red]
   ]
 }

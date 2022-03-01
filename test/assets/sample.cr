@@ -19,4 +19,4 @@ def paint(color : Color)
   end
 end
 
-paint "red"
+paint :red
