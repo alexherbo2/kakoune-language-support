@@ -101,9 +101,6 @@ define-command assert_buffer_eq -params 2 %{
     echo -debug "Got:"
     evaluate-commands "echo -debug %%file{%reg{b}}"
 
-    set-option -add global failure_count 1
-    set-option global exit_code 1
-
     # Return status
     fail fail
   }
@@ -125,10 +122,12 @@ define-command test -params 2 %{
     set-option -add global success_count 1
   } catch %{
     # Rescue `fail` status.
-    try %sh[ [ "$kak_error" = fail ] || echo fail ] catch %{
+    try %{
+      evaluate-commands %sh[ [ "$kak_error" = fail ] || echo fail ]
+      set-option -add global failure_count 1
+    } catch %{
       echo -debug "Error: %val{error}"
       set-option -add global error_count 1
-      set-option global exit_code 1
     }
   }
   delete-buffer
@@ -148,6 +147,11 @@ evaluate-commands %sh{
 set-option -add global example_count %opt{success_count}
 set-option -add global example_count %opt{failure_count}
 set-option -add global example_count %opt{error_count}
+evaluate-commands %sh{
+  if [ "$kak_opt_failure_count" -gt 0 ] || [ "$kak_opt_error_count" -gt 0 ]; then
+    echo 'set-option global exit_code 1'
+  fi
+}
 echo -debug "Result for %opt{example_count} examples: %opt{success_count} passing, %opt{failure_count} failures, %opt{error_count} errors."
 buffer '*debug*'
 write! %opt{log_path}
