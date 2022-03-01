@@ -3,12 +3,7 @@ source rc/comment.kak
 
 test 'Toggle line comments' %{
 
-  init %{
-    set-option buffer line_comment_token '#'
-    toggle-comments
-  }
-
-  set-input %[
+  buffer_str! '*input*' %[
     enum Color
       [Red]
       [Green]
@@ -32,7 +27,7 @@ test 'Toggle line comments' %{
     paint :red]
   ]
 
-  set-output %[
+  buffer_str! '*output*' %[
     enum Color
       # [Red]
       # [Green]
@@ -55,17 +50,16 @@ test 'Toggle line comments' %{
 
     # paint :red]
   ]
+
+  buffer '*input*'
+  set-option buffer line_comment_token '#'
+  toggle-comments
+  assert_buffer_eq '*input*' '*output*'
 }
 
 test 'Toggle block comments' %{
 
-  init %{
-    set-option buffer line_comment_token
-    set-option buffer block_comment_tokens '/*' '*/'
-    toggle-comments
-  }
-
-  set-input %[
+  buffer_str! '*input*' %[
     enum Color
       /* [Red] */
       /* [Green] */
@@ -89,7 +83,7 @@ test 'Toggle block comments' %{
     paint :red] */
   ]
 
-  set-output %[
+  buffer_str! '*output*' %[
     enum Color
       [Red]
       [Green]
@@ -112,4 +106,10 @@ test 'Toggle block comments' %{
 
     paint :red]
   ]
+
+  buffer '*input*'
+  set-option buffer line_comment_token
+  set-option buffer block_comment_tokens '/*' '*/'
+  toggle-comments
+  assert_buffer_eq '*input*' '*output*'
 }

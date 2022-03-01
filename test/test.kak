@@ -5,73 +5,138 @@
 delete-buffer '*debug*'
 
 # Internal variables
-declare-option str commands
 declare-option str actual_output
 declare-option str expected_output
 
-declare-option int example_count 0
+# Reference:
+# <https://github.com/crystal-lang/crystal/blob/master/src/spec/context.cr#:~:text=enum Status>
+declare-option int success_count 0
 declare-option int failure_count 0
 declare-option int error_count 0
+declare-option int example_count 0
 
 declare-option int exit_code 0
 declare-option str log_path %arg{1}
 
+declare-option str tmp %sh(mktemp -d)
+
+hook -always global KakEnd '' %{
+  nop %sh(rm -Rf "$kak_opt_tmp")
+}
+
+# Commands
+
+# Creates a buffer from the given string.
+#
+# Syntax
+#
+# create_buffer_from_string <buffer_name> <text>
+#
+# Reference:
+#
+# https://github.com/mawww/kakoune/blob/master/src/buffer_utils.cc#:~:text=create_buffer_from_string
+#
+define-command -override create_buffer_from_string -params 2 %{
+  edit -scratch %arg{1}
+  set-register dquote %arg{2}
+  execute-keys '%R'
+}
+
+# Indented strings
+#
+# Leading whitespace is removed from the string contents according to the number of whitespace in the last line before the string delimiter.
+#
+# Syntax
+#
+# create_buffer_from_template_string <buffer_name> <template_text>
+#
+# Reference:
+#
+# - <https://nixos.org/manual/nix/stable/expressions/language-values.html#:~:text=indented string>
+# - https://crystal-lang.org/reference/master/syntax_and_semantics/literals/string.html#heredoc
+#
+define-command create_buffer_from_template_string -params 2 %{
+  create_buffer_from_string %arg{1} %arg{2}
+  execute-keys '%s\A\n|\n\z<ret>d%1s(\h+)\n\z<ret>y%s^\Q<c-r>"<ret>dged%s\[<ret><a-i>ri<backspace><esc>a<del><esc>'
+}
+
+# Reference:
+#
+# - https://doc.rust-lang.org/std/macro.assert.html
+# - https://doc.rust-lang.org/std/macro.assert_eq.html
+#
+define-command assert_eq -params 2 %{
+}
+
+# Asserts that two buffers are equal to each other.
+# Buffer contents and selected text should be equal.
+define-command assert_buffer_eq -params 2 %{
+  set-register a "%opt{tmp}/a"
+  set-register b "%opt{tmp}/b"
+  buffer %arg{1}
+  set-register c %val{selections_desc}
+  write! %reg{a}
+  buffer %arg{2}
+  set-register d %val{selections_desc}
+  write! %reg{b}
+
+  # Asserts that two buffers are equal to each other.
+  # Buffer contents and selected text should be equal.
+  try %sh[ cmp -s "$kak_reg_a" "$kak_reg_b" && test "$kak_reg_c" = "$kak_reg_d" || echo fail ] catch %{
+    # Failure message
+    # Mark selected text
+    # Text enclosed in square brackets `[]` denotes selected text.
+    edit %reg{a}
+    select %reg{c}
+    execute-keys 'i[<esc>a]<esc>'
+    write
+
+    edit %reg{b}
+    select %reg{d}
+    execute-keys 'i[<esc>a]<esc>'
+    write
+
+    echo -debug "Expected:"
+    evaluate-commands "echo -debug %%file{%reg{a}}"
+    echo -debug "Got:"
+    evaluate-commands "echo -debug %%file{%reg{b}}"
+
+    set-option -add global failure_count 1
+    set-option global exit_code 1
+
+    # Return status
+    fail fail
+  }
+}
+
+# Syntax:
+#
+# test <description> <commands>
+#
+# Reference:
+# - https://github.com/crystal-lang/crystal/blob/master/src/spec/context.cr
+# - https://github.com/crystal-lang/crystal/blob/master/src/spec/expectations.cr
 define-command test -params 2 %{
-  set-option -add global example_count 1
   edit -scratch
-  evaluate-commands %arg{2}
-
-  # Indented strings
-  # Leading whitespace is removed from the string contents
-  # according to the number of whitespace in the last line before the string delimiter.
-  # https://crystal-lang.org/reference/master/syntax_and_semantics/literals/string.html#heredoc
-  set-register a %opt{actual_output}
-  set-register b %opt{expected_output}
-  execute-keys '%"aRs\A\n|\n\z<ret>d%1s(\h+)\n\z<ret>y%s^\Q<c-r>"<ret>dged%"ay'
-  execute-keys '%"bRs\A\n|\n\z<ret>d%1s(\h+)\n\z<ret>y%s^\Q<c-r>"<ret>dged%"by'
-  set-option global actual_output %reg{a}
-  set-option global expected_output %reg{b}
-
+  echo -debug "Running test: %arg{1}"
   try %{
-    # Map scratch buffer with original input.
-    # Set buffer content and selected text from marks: [selected_text].
-    execute-keys '%"aRs\[<ret><a-i>ri<backspace><esc>a<del><esc>'
     # Yields commands
-    evaluate-commands %opt{commands}
-    # Mark selected text: [selected_text].
-    execute-keys 'i[<esc>a]<esc>%"ay'
-    set-option global actual_output %reg{a}
-
-    # assert_eq!
-    # Asserts that two buffers are equal to each other (using buffer content and selection state).
-    try %sh[ [ "$kak_opt_actual_output" = "$kak_opt_expected_output" ] || echo fail ] catch %{
-      echo -debug "Failed example: %arg{1}"
-      echo -debug 'Expected:'
-      echo -debug "%opt{expected_output}"
-      echo -debug 'Got:'
-      echo -debug "%opt{actual_output}"
-      set-option -add global failure_count 1
+    evaluate-commands %arg{2}
+    set-option -add global success_count 1
+  } catch %{
+    # Rescue `fail` status.
+    try %sh[ [ "$kak_error" = fail ] || echo fail ] catch %{
+      echo -debug "Error: %val{error}"
+      set-option -add global error_count 1
       set-option global exit_code 1
     }
-  } catch %{
-    echo -debug "Error: %val{error}"
-    set-option -add global error_count 1
-    set-option global exit_code 1
   }
   delete-buffer
 }
 
-define-command init -params 1 %{
-  set-option global commands %arg{1}
-}
-
-define-command set-input -params 1 %{
-  set-option global actual_output %arg{1}
-}
-
-define-command set-output -params 1 %{
-  set-option global expected_output %arg{1}
-}
+# Aliases
+alias global buffer_str create_buffer_from_string
+alias global buffer_str! create_buffer_from_template_string
 
 # Run tests
 # Source `test/**/*_test.kak`.
@@ -80,7 +145,10 @@ evaluate-commands %sh{
 }
 
 # Print result and exit.
-echo -debug "Result: %opt{example_count} examples, %opt{failure_count} failures, %opt{error_count} errors."
+set-option -add global example_count %opt{success_count}
+set-option -add global example_count %opt{failure_count}
+set-option -add global example_count %opt{error_count}
+echo -debug "Result for %opt{example_count} examples: %opt{success_count} passing, %opt{failure_count} failures, %opt{error_count} errors."
 buffer '*debug*'
 write! %opt{log_path}
 quit! %opt{exit_code}
