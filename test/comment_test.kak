@@ -1,7 +1,7 @@
 source test/test_helper.kak
 source rc/comment.kak
 
-test 'Toggle line comments' %{
+test test_toggle_line_comments %{
 
   buffer_str! '*input*' %[
     enum Color
@@ -57,7 +57,7 @@ test 'Toggle line comments' %{
   assert_buffer_eq '*input*' '*output*'
 }
 
-test 'Toggle block comments' %{
+test test_toggle_block_comments %{
 
   buffer_str! '*input*' %[
     enum Color

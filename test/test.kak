@@ -8,13 +8,16 @@ delete-buffer '*debug*'
 declare-option str actual_output
 declare-option str expected_output
 
+declare-option str-list tests
+
 # Reference:
 # <https://github.com/crystal-lang/crystal/blob/master/src/spec/context.cr#:~:text=enum Status>
+declare-option int test_count 0
 declare-option int success_count 0
 declare-option int failure_count 0
 declare-option int error_count 0
-declare-option int example_count 0
 
+declare-option str final_status_message
 declare-option int exit_code 0
 declare-option str log_path %arg{1}
 
@@ -113,12 +116,30 @@ define-command assert_buffer_eq -params 2 %{
 # Reference:
 # - https://github.com/crystal-lang/crystal/blob/master/src/spec/context.cr
 # - https://github.com/crystal-lang/crystal/blob/master/src/spec/expectations.cr
-define-command test -params 2 %{
-  edit -scratch
-  echo -debug "Running test: %arg{1}"
+define-command add_test -params 2 %{
+  define-command %arg{1} %arg{2}
+  set-option -add global tests %arg{1}
+  set-option -add global test_count 1
+}
+
+# https://doc.rust-lang.org/test/fn.run_tests.html
+define-command run_tests %{
+  evaluate-commands %sh{
+    eval set -- "$kak_opt_tests"
+    echo "echo running $# tests"
+    for test do
+      echo "run_test $test"
+    done
+  }
+}
+
+# https://doc.rust-lang.org/test/fn.run_test.html
+define-command run_test -params 1 %{
+  echo -debug "test %arg{1}"
+  edit -scratch '*test*'
   try %{
     # Yields commands
-    evaluate-commands %arg{2}
+    evaluate-commands %arg{1}
     set-option -add global success_count 1
   } catch %{
     # Rescue `fail` status.
@@ -130,10 +151,11 @@ define-command test -params 2 %{
       set-option -add global error_count 1
     }
   }
-  delete-buffer
+  delete-buffer '*test*'
 }
 
 # Aliases
+alias global test add_test
 alias global buffer_str create_buffer_from_string
 alias global buffer_str! create_buffer_from_template_string
 
@@ -143,16 +165,20 @@ evaluate-commands %sh{
   find test -type f -name '*_test.kak' -exec printf 'source "%s";' {} +
 }
 
+# Run tests
+run_tests
+
 # Print result and exit.
-set-option -add global example_count %opt{success_count}
-set-option -add global example_count %opt{failure_count}
-set-option -add global example_count %opt{error_count}
 evaluate-commands %sh{
   if [ "$kak_opt_failure_count" -gt 0 ] || [ "$kak_opt_error_count" -gt 0 ]; then
     echo 'set-option global exit_code 1'
+    echo 'set-option global final_status_message "not ok"'
+  else
+    echo 'set-option global final_status_message "ok"'
   fi
 }
-echo -debug "Result for %opt{example_count} examples: %opt{success_count} passing, %opt{failure_count} failures, %opt{error_count} errors."
+# final_status_message
+echo -debug "test result: %opt{final_status_message}. %opt{success_count} passed, %opt{failure_count} failed, %opt{error_count} panicked."
 buffer '*debug*'
 write! %opt{log_path}
 quit! %opt{exit_code}
