@@ -1,7 +1,7 @@
 build:
 
 test:
-	sh test/test.sh
+	kak-test
 
 install:
 	install -d ~/.config/kak/autoload
