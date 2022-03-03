@@ -10,6 +10,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Install packages
+        run: sudo apt install -y xz-utils
+
       - name: Install Kakoune
         run: sudo snap install kakoune --classic
 
