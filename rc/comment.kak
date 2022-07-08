@@ -41,7 +41,7 @@ define-command -override -hidden toggle-line-comments-with-token -params 1 -docs
     set-register a %arg{1}
 
     # Sanitize selections before iterating.
-    execute-keys '<a-x>'
+    execute-keys 'x'
 
     evaluate-commands -draft -itersel %{
       try %{
@@ -91,7 +91,7 @@ define-command -override -hidden toggle-block-comments-with-token -params 2 -doc
     try %{
       # Sanitize selections before iterating.
       # Blank lines are excluded.
-      execute-keys '<a-x>_'
+      execute-keys 'x_'
 
       evaluate-commands -draft -itersel %{
         try %{
